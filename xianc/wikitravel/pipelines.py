@@ -6,12 +6,11 @@
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
 
-from xiandb import connection
+import xiandb as db
 
 
 class WikitravelPipeline(object):
     def process_item(self, item, spider):
-        city = connection.City.find_one({'_id': item['_id']})
+        city = db.City.find_one({'_id': item['_id']})
         city['story'] = item['story']
-        print city
         city.save()

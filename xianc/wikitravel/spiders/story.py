@@ -4,12 +4,17 @@ import json
 from datetime import datetime
 
 
+import xiandb as db
+
+
 class StorySpider(scrapy.Spider):
     name = 'story'
     allowed_domains = ['www.wikitravel.org']
 
-    def __init__(self, id, name):
-        self._id = int(id)
+    def __init__(self, _id, name=None):
+        self._id = int(_id)
+        if not name:
+            name = db.City.find_one({'_id': self._id}, {'name': 1})['name']
         self.name = name
 
     def start_requests(self):
@@ -42,4 +47,3 @@ class StorySpider(scrapy.Spider):
                     'updated': datetime.now()
                 }
             }
-        pass
