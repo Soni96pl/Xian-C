@@ -9,7 +9,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='xianc',
-    version='0.1.0',
+    version='0.1.1',
 
     description='A set of crawlers for Xian',
     long_description=long_description,
@@ -35,13 +35,14 @@ setup(
     ],
 
     keywords='xian crawler',
-    packages=['xianc', 'xianc.wikitravel'],
+    packages=['xianc', 'xianc.wikitravel', 'xianc.wikitravel.spiders'],
 
     install_requires=[
         'pyasn1==0.1.9',
         'Scrapy==1.2.0',
         'redis==2.10.5',
         'rq==0.6.0',
+        'rq-scheduler==0.7.0',
         'xiandb'
     ],
     dependency_links=[

@@ -11,18 +11,21 @@ class StorySpider(scrapy.Spider):
     name = 'story'
     allowed_domains = ['www.wikitravel.org']
 
-    def __init__(self, _id, name=None):
-        self._id = int(_id)
-        if not name:
-            name = db.City.find_one({'_id': self._id}, {'name': 1})['name']
-        self.name = name
+    def __init__(self, _ids):
+        _ids = map(int, _ids.split(','))
+        self.cities = db.City.find({'_id': {'$in': _ids}})
+
+    def prepare_request(self, city):
+        return scrapy.FormRequest(
+            url='http://wikitravel.org/wiki/en/api.php',
+            formdata={'action': 'parse',
+                      'page': city['name'],
+                      'format': 'json'},
+            meta={'db': city}
+        )
 
     def start_requests(self):
-        return [scrapy.FormRequest(
-            url='http://wikitravel.org/wiki/en/api.php',
-            formdata={'action': 'parse', 'page': self.name, 'format': 'json'},
-            meta={'_id': self._id, 'name': self.name}
-        )]
+        return map(self.prepare_request, self.cities)
 
     def parse(self, response):
         data = json.loads(response.body_as_unicode())
@@ -30,7 +33,7 @@ class StorySpider(scrapy.Spider):
         if error:
             if error == "The page you specified doesn't exist":
                 return {
-                    '_id': response.meta['_id'],
+                    'db': response.meta['db'],
                     'story': {
                         'content': '',
                         'existing': False,
@@ -40,7 +43,7 @@ class StorySpider(scrapy.Spider):
         else:
             hxs = scrapy.Selector(text=data['parse']['text']['*'])
             return {
-                '_id': response.meta['_id'],
+                'db': response.meta['db'],
                 'story': {
                     'content': hxs.xpath('(//p)[2]').extract_first(),
                     'existing': True,
